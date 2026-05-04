@@ -31,6 +31,26 @@ AFTER INSTALLATION
 - From then on, launch the tool from the MZU_Tools shelf.
 - You do not need to run the installer again unless you move the files or want to reinstall.
 
+## Screenshots
+
+### Main Interface
+
+<p align="center">
+  <img src="images/m2usc1.png" alt="M2U Studio Custom Main Interface" width="900">
+</p>
+
+### Validation Results
+
+<p align="center">
+  <img src="images/m2usc2.png" alt="M2U Studio Custom Validation Results" width="900">
+</p>
+
+### Export / Report Workflow
+
+<p align="center">
+  <img src="images/m2usc3.png" alt="M2U Studio Custom Export Workflow" width="900">
+</p>
+
 TOOL SECTIONS
 - Asset Scope
 - Pivot Rules
