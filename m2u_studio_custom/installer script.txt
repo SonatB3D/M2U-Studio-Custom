@@ -1,0 +1,89 @@
+import os
+import sys
+import importlib
+import maya.cmds as cmds
+import maya.mel as mel
+
+SHELF_LABEL = "MZU_Tools"
+BUTTON_LABEL = "M2U Studio Custom"
+MODULE_NAME = "m2u_studio_custom"
+MODULE_FILE = "m2u_studio_custom.py"
+ICON_FILE = "m2u_studio_custom_icon.png"
+
+
+folder = cmds.fileDialog2(fileMode=3, caption="Select M2U folder")
+if not folder:
+    raise RuntimeError("Installation cancelled.")
+
+base_dir = folder[0]
+module_path = os.path.join(base_dir, MODULE_FILE)
+icon_path = os.path.join(base_dir, ICON_FILE)
+
+if not os.path.isfile(module_path):
+    cmds.error("Missing file: " + MODULE_FILE)
+
+if not os.path.isfile(icon_path):
+    cmds.error("Missing file: " + ICON_FILE)
+
+
+top = mel.eval("$tmp=$gShelfTopLevel")
+children = cmds.shelfTabLayout(top, q=True, childArray=True) or []
+
+shelf_name = None
+for i, child in enumerate(children, start=1):
+    try:
+        label = cmds.shelfTabLayout(top, q=True, tabLabelIndex=i)
+    except:
+        label = None
+
+    if label == SHELF_LABEL or child == SHELF_LABEL:
+        shelf_name = child
+        break
+
+if not shelf_name:
+    shelf_name = cmds.shelfLayout(SHELF_LABEL, parent=top)
+    cmds.shelfTabLayout(top, e=True, tabLabel=(shelf_name, SHELF_LABEL))
+
+
+exists = False
+for child in (cmds.shelfLayout(shelf_name, q=True, childArray=True) or []):
+    try:
+        if cmds.shelfButton(child, q=True, label=True) == BUTTON_LABEL:
+            exists = True
+            break
+    except:
+        pass
+
+
+if not exists:
+    cmd = '''
+import sys, importlib
+base_dir = r"{0}"
+if base_dir not in sys.path:
+    sys.path.insert(0, base_dir)
+
+if "{1}" in sys.modules:
+    mod = importlib.reload(sys.modules["{1}"])
+else:
+    mod = importlib.import_module("{1}")
+
+mod.ui.show()
+'''.format(base_dir.replace("\\", "\\\\"), MODULE_NAME)
+
+    cmds.shelfButton(
+        parent=shelf_name,
+        label=BUTTON_LABEL,
+        annotation=BUTTON_LABEL,
+        image1=icon_path,
+        style="iconOnly",
+        sourceType="python",
+        command=cmd
+    )
+
+cmds.shelfTabLayout(top, e=True, selectTab=shelf_name)
+
+cmds.confirmDialog(
+    title="M2U Installer",
+    message="M2U Studio Custom shelf button is ready.",
+    button=["OK"]
+)

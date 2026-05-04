@@ -1,0 +1,223 @@
+M2U STUDIO CUSTOM — FUNCTIONS
+
+GENERAL PURPOSE
+M2U Studio Custom is a Maya validation and export tool for selected mesh assets.
+It allows the user to define custom validation rules, review readable results, and export approved assets as FBX.
+
+GENERAL BEHAVIOR
+- works on selected mesh transforms
+- supports one or multiple selected assets
+- ignores invalid non-mesh selections
+- presents results in a readable artist-friendly format
+- can be launched directly from the MZU_Tools shelf after installation
+
+USER CONTROL AND FLEXIBILITY
+A major purpose of Studio Custom is flexibility.
+Users are not locked into one fixed ruleset.
+
+Users can:
+- enable or disable individual rule groups
+- change target values to fit their own project needs
+- choose how strict certain checks should be
+- use the tool for different internal workflows, naming conventions, and asset standards
+
+For several rule sections, users can control severity behavior:
+- off = ignore that validation result
+- warning = report the issue, but do not block export
+- blocking = report the issue and block export
+
+This allows the tool to be used both as:
+- a strict validation gate
+- a soft guidance / warning tool
+- a mixed workflow depending on project needs
+
+MAIN UI SECTIONS
+
+1. ASSET SCOPE
+- Selection Mode is displayed as Selected Assets
+- the tool works on the current Maya selection
+- Front Axis can be changed by the user
+- Front Axis affects pivot target interpretation such as Front / Back / Left / Right based presets
+
+2. PIVOT RULES
+Users can:
+- enable or disable pivot validation
+- choose a pivot target preset
+- change pivot tolerance in centimeters
+- choose severity behavior: off, warning, or blocking
+
+The pivot validator checks whether the current asset pivot matches the selected target position within the chosen tolerance.
+
+Available pivot targets include:
+- Center
+- Bottom Center
+- Bottom Front Center
+- Bottom Back Center
+- Bottom Left Center
+- Bottom Right Center
+- Bottom Front Left
+- Bottom Front Right
+- Bottom Back Left
+- Bottom Back Right
+- Front Center
+- Back Center
+- Left Center
+- Right Center
+- Top Center
+- Top Front Center
+- Top Back Center
+- Top Left Center
+- Top Right Center
+- Top Front Left
+- Top Front Right
+- Top Back Left
+- Top Back Right
+
+3. DIMENSION RULES
+Users can:
+- enable or disable dimension validation
+- set Expected Width
+- set Expected Height
+- set Expected Depth
+- set Size Tolerance
+- choose severity behavior: off, warning, or blocking
+
+The tool compares actual world-space bounding box size to the user-defined expected dimensions.
+If the asset size is outside the chosen tolerance, the result can be ignored, shown as a warning, or treated as blocking depending on the selected severity.
+
+4. GRID RULES
+Users can:
+- enable or disable grid validation
+- set Grid Step in centimeters
+- enable or disable bounds snap checking
+- choose severity behavior: off, warning, or blocking
+
+The tool checks whether bounding box dimensions fit the selected grid step.
+This is especially useful for modular environment workflows.
+
+5. GEOMETRY RULES
+Users can control:
+- Max Polycount
+- Freeze Required
+- Clean History Required
+- Zero Thickness Warning
+
+Geometry checks include:
+- polycount limit validation
+- frozen transform validation
+- construction history validation
+
+In practice, this means the user can decide:
+- whether transforms must be frozen
+- whether clean history is required
+- what maximum polycount is acceptable for the current workflow
+
+6. NAMING RULES
+Users can:
+- enable or disable the prefix rule
+- type any naming prefix they want
+- choose severity behavior: off, warning, or blocking
+
+This means the tool can check for prefixes such as:
+- SM_
+- any studio-specific prefix
+- any project-specific asset prefix the user wants to enforce
+
+If enabled, the tool validates whether the selected asset name starts with the required prefix.
+
+7. COLLISION RULES
+Users can:
+- enable or disable UCX collision checking
+- choose a collision requirement mode
+- choose whether multiple UCX parts are accepted
+- choose severity behavior: off, warning, or blocking
+
+Collision requirement modes:
+- Off
+- UCX required
+- UCX optional
+- No custom collision allowed
+
+The tool checks UCX collision presence and naming based on the asset name.
+It supports multipart UCX naming such as:
+- UCX_AssetName
+- UCX_AssetName_01
+- UCX_AssetName_02
+
+This allows users to decide whether collision should be mandatory, optional, disallowed, or ignored for the current workflow.
+
+8. EXPORT BEHAVIOR
+Users can control:
+- Export Ready Assets
+- Skip Blocked Assets
+- Export Warning Assets
+- Write JSON Report
+
+This means the user can decide:
+- whether only ready assets should export
+- whether blocked assets must always be skipped
+- whether assets with warnings are still allowed to export
+- whether a JSON report should be written during export
+
+9. ACTIONS
+The tool includes three main action buttons:
+- Validate Selected Assets
+- Export Selected Assets
+- Clear Results
+
+Typical workflow:
+1. select assets
+2. adjust rules
+3. validate
+4. review results
+5. export valid assets
+
+10. RESULTS DISPLAY
+The results panel is designed to be readable rather than debug-heavy.
+
+It provides:
+- summary counts
+- asset-by-asset validation status
+- per-check Pass / Fail states
+- short explanations for each check
+- export result feedback
+
+Typical checks shown in results include:
+- Naming
+- Polycount
+- Freeze Transform
+- History
+- Dimensions
+- Pivot
+- Grid
+- UCX Collision
+
+11. FBX EXPORT
+When exporting, the tool:
+- validates the current selection
+- asks the user to choose an export folder
+- exports approved assets as FBX
+- can skip blocked assets
+- can export warning assets depending on settings
+- can write a JSON report
+
+12. SHELF INTEGRATION
+After installation:
+- the installer creates or reuses the MZU_Tools shelf
+- adds the M2U Studio Custom button
+- uses the provided icon
+- allows the user to open the tool directly from the shelf button in future sessions
+
+INTENDED USE CASES
+- Unreal-oriented validation workflows
+- modular environment asset checking
+- prop / static mesh checking
+- custom studio validation rules
+- artist-side pre-export checking
+
+INTENDED USER
+- 3D artists
+- environment artists
+- prop artists
+- technical artists
+- Maya users preparing structured asset exports
