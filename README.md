@@ -61,23 +61,23 @@ Run the installer again only if:
 ## Screenshots
 
 <p align="center">
-  <img src="M2U_Studio_Custom_V1.2.4/images/m2usc1.png" alt="M2U Studio Custom Main Interface" width="850">
+  <img src="M2U_Studio_Custom_V1.2.4/images2/m2usc1.png" alt="M2U Studio Custom Main Interface" width="850">
 </p>
 
 <p align="center">
-  <img src="M2U_Studio_Custom_V1.2.4/images/m2usc2.png" alt="M2U Studio Custom Export Options" width="850">
+  <img src="M2U_Studio_Custom_V1.2.4/images2/m2usc2.png" alt="M2U Studio Custom Export Options" width="850">
 </p>
 
 <p align="center">
-  <img src="M2U_Studio_Custom_V1.2.4/images/m2usc3.png" alt="M2U Studio Custom UCX Collision Workflow" width="850">
+  <img src="M2U_Studio_Custom_V1.2.4/images2/m2usc3.png" alt="M2U Studio Custom UCX Collision Workflow" width="850">
 </p>
 
 <p align="center">
-  <img src="M2U_Studio_Custom_V1.2.4/images/m2usc4.png" alt="M2U Studio Custom Folder Selection" width="850">
+  <img src="M2U_Studio_Custom_V1.2.4/images2/m2usc4.png" alt="M2U Studio Custom Folder Selection" width="850">
 </p>
 
 <p align="center">
-  <img src="M2U_Studio_Custom_V1.2.4/images/m2usc5.png" alt="M2U Studio Custom Final Export Workflow" width="850">
+  <img src="M2U_Studio_Custom_V1.2.4/images2/m2usc5.png" alt="M2U Studio Custom Final Export Workflow" width="850">
 </p>
 
 TOOL SECTIONS
