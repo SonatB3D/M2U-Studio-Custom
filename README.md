@@ -1,5 +1,5 @@
 M2U STUDIO CUSTOM - README
-Version: v12 UCX UI FINAL
+Version: v1.2.4
 
 OVERVIEW
 M2U Studio Custom is a Maya-side validation and FBX export helper tool for selected static mesh assets.
