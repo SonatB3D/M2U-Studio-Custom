@@ -1,0 +1,877 @@
+M2U STUDIO CUSTOM - FUNCTIONS
+Version: v12 UCX UI FINAL
+
+GENERAL PURPOSE
+M2U Studio Custom is a Maya-side validation and FBX export helper tool for selected static mesh assets.
+It is designed for artists and technical artists who need to prepare clean, predictable, Unreal Engine-oriented FBX exports from Autodesk Maya.
+
+The tool is not only a basic exporter. It is intended to work as a pre-export validation layer. Before exporting, it can check naming, dimensions, pivot placement, grid compatibility, geometry state, UCX collision naming, matched UCX collision quality, and export behavior.
+
+The tool allows users to:
+- define validation rules from a Maya UI
+- validate one or multiple selected base mesh assets
+- review readable per-check results
+- detect common production issues before export
+- export approved assets as FBX
+- include matching UCX collision meshes inside the same FBX file
+- validate the technical state of matched UCX collision meshes
+- use either base asset naming or custom target naming for UCX collision matching
+- generate optional JSON validation/export reports
+- use the tool from a shelf button or through manual Python launch
+
+
+CORE DESIGN PRINCIPLES
+1. Maya-side validation
+The tool runs inside Autodesk Maya and checks the current scene selection before export.
+
+2. Artist-readable results
+The results panel is designed to be readable by artists. It avoids excessive debug output and focuses on Pass, Fail, Warning, Blocked, Ready, and export result messages.
+
+3. Rule flexibility
+The user is not locked into one fixed standard. Most validation sections can be enabled, disabled, softened, or made strict.
+
+4. Unreal Engine-oriented FBX workflow
+The tool is focused on static mesh FBX preparation, especially workflows that use Unreal Engine custom UCX collision.
+
+5. UCX collision as helper geometry
+UCX_* objects are treated as collision helpers, not as separate base assets.
+
+6. Safe launch behavior
+The fixed script is import-safe and should be launched through show().
+
+
+GENERAL BEHAVIOR
+The tool:
+- works on selected Maya mesh transforms
+- supports one or multiple selected base assets
+- ignores invalid non-mesh selections
+- excludes UCX_* collision transforms from the base asset selection list
+- treats UCX_* transforms as collision helpers for matching base assets
+- can validate matched UCX collision meshes as part of the base asset result
+- presents validation results in a readable artist-friendly format
+- can export ready assets to FBX
+- can skip blocked assets
+- can export warning assets depending on settings
+- can generate JSON reports
+- can be launched from the M2U_Tools shelf after installation
+- uses an import-safe launch structure through show()
+
+
+SEVERITY SYSTEM
+Several rule sections use severity control.
+
+Available severity values:
+- off
+- warning
+- blocking
+
+Severity behavior:
+off:
+The check is ignored for export decision purposes. It may be treated as disabled depending on the section.
+
+warning:
+The issue is reported, but the asset can still export if Export Warning Assets is enabled.
+
+blocking:
+The issue is reported as a blocking issue. The asset is not ready for export. If Skip Blocked Assets is enabled, the asset is skipped during export.
+
+This allows the tool to be used as:
+- a strict gatekeeper
+- a soft warning system
+- a mixed studio/project validation helper
+
+
+MAIN UI SECTIONS
+The tool is organized into these UI sections:
+1. Asset Scope
+2. Pivot Rules
+3. Dimension Rules
+4. Grid Rules
+5. Geometry Rules
+6. Naming Rules
+7. Collision Rules
+8. Export Behavior
+9. Actions
+10. Results
+
+
+1. ASSET SCOPE
+Purpose:
+Defines how the tool interprets the selected asset and the directional meaning of front/back/left/right pivot targets.
+
+Controls:
+- Selection Mode
+- Front Axis
+
+Selection Mode:
+Currently displayed as Selected Assets. The tool validates and exports the current Maya selection.
+
+Front Axis:
+Defines which horizontal axis direction is considered the front of the asset.
+
+Supported values:
+- +X
+- -X
+- +Z
+- -Z
+
+Important behavior:
+The Y axis is treated as height/up. +Y and -Y are intentionally not used as front axis options in the fixed version, because using Y as both height and front direction creates inconsistent pivot corner calculations.
+
+Affected features:
+- Pivot Target interpretation
+- Front Center
+- Back Center
+- Left Center
+- Right Center
+- Bottom Front Center
+- Bottom Back Center
+- Bottom Front Left
+- Bottom Front Right
+- Bottom Back Left
+- Bottom Back Right
+- Top front/back/left/right variants
+
+
+2. PIVOT RULES
+Purpose:
+Checks whether the selected asset pivot is placed at a user-defined target position within a tolerance.
+
+Controls:
+- Enable Pivot Check
+- Pivot Target
+- Pivot Tolerance (cm)
+- Severity
+
+Pivot validation uses the world-space bounding box of the asset and compares the current rotate pivot position against the calculated target position.
+
+Available pivot targets include:
+- Center
+- Bottom Center
+- Bottom Front Center
+- Bottom Back Center
+- Bottom Left Center
+- Bottom Right Center
+- Bottom Front Left
+- Bottom Front Right
+- Bottom Back Left
+- Bottom Back Right
+- Front Center
+- Back Center
+- Left Center
+- Right Center
+- Top Center
+- Top Front Center
+- Top Back Center
+- Top Left Center
+- Top Right Center
+- Top Front Left
+- Top Front Right
+- Top Back Left
+- Top Back Right
+
+Useful examples:
+- Modular wall piece: Bottom Back Center or Bottom Center
+- Door prop: Bottom Center
+- Object placed against a grid corner: Bottom Back Left or Bottom Front Left
+- Centered prop: Center
+
+Severity behavior:
+- off: pivot validation is ignored
+- warning: bad pivot is reported but does not block export
+- blocking: bad pivot blocks export
+
+
+3. DIMENSION RULES
+Purpose:
+Checks whether the asset bounding box size matches expected dimensions.
+
+Controls:
+- Enable Dimension Check
+- Expected Width (cm)
+- Expected Height (cm)
+- Expected Depth (cm)
+- Size Tolerance (cm)
+- Severity
+
+The tool calculates the asset's world-space bounding box size and compares it to the expected width, height, and depth.
+
+Pass condition:
+Each dimension must be within the configured tolerance.
+
+Example:
+Expected Width: 100 cm
+Expected Height: 300 cm
+Expected Depth: 20 cm
+Tolerance: 0.5 cm
+
+The asset passes if all actual dimensions are within 0.5 cm of the expected values.
+
+Use cases:
+- modular walls
+- doors
+- floors
+- stairs
+- repeated prop kits
+- studio-standard asset sizes
+
+Severity behavior:
+- off: dimension validation is ignored
+- warning: dimension mismatch is reported but does not block export
+- blocking: dimension mismatch blocks export
+
+
+4. GRID RULES
+Purpose:
+Checks whether the asset dimensions and optionally the asset bounds align to a grid step.
+
+Controls:
+- Enable Grid Check
+- Grid Step (cm)
+- Check Bounds Snap
+- Severity
+
+Dimension grid check:
+The tool checks whether bounding box width, height, and depth are multiples of the selected grid step.
+
+Bounds snap check:
+If Check Bounds Snap is enabled, the tool also checks whether bounding box coordinates are aligned to the grid step:
+- minX
+- minY
+- minZ
+- maxX
+- maxY
+- maxZ
+
+Example:
+Grid Step: 10 cm
+The tool checks whether dimensions and optionally bounding coordinates align to 10 cm increments.
+
+Use cases:
+- modular environment kits
+- snap-to-grid wall pieces
+- floors and ceilings
+- kitbash parts
+- architectural assets
+
+Severity behavior:
+- off: grid validation is ignored
+- warning: grid mismatch is reported but does not block export
+- blocking: grid mismatch blocks export
+
+
+5. GEOMETRY RULES
+Purpose:
+Checks general mesh cleanliness and technical state before export.
+
+Controls:
+- Max Polycount
+- Freeze Required
+- Clean History Required
+- Zero Thickness Warning
+- Zero Thickness Tolerance (cm)
+
+5.1 Max Polycount
+Checks the number of polygon faces on the selected transform's mesh shapes.
+
+If the face count is above Max Polycount, the asset receives a blocking issue.
+
+Use cases:
+- controlling performance budgets
+- keeping collision and prop geometry clean
+- enforcing studio limits
+
+5.2 Freeze Required
+Checks whether transform values are frozen.
+
+The check expects:
+- translate: 0, 0, 0
+- rotate: 0, 0, 0
+- scale: 1, 1, 1
+
+If transforms are not frozen, the asset receives a blocking issue.
+
+5.3 Clean History Required
+Checks whether construction history exists on the asset.
+
+The check ignores normal mesh/transform-related nodes but reports construction history nodes that may cause unstable exports or unexpected changes.
+
+By default, history issues are treated as warnings.
+
+5.4 Zero Thickness Warning
+Checks whether width, height, or depth is below or equal to the configured tolerance.
+
+This can detect nearly flat or extremely thin geometry.
+
+Use cases:
+- accidentally flattened meshes
+- collision objects with unusable volume
+- very thin assets that might cause pipeline issues
+
+
+6. NAMING RULES
+Purpose:
+Checks whether selected base assets follow a required naming prefix.
+
+Controls:
+- Enable Prefix Rule
+- Naming Prefix
+- Severity
+
+Example prefixes:
+- SM_
+- BP_
+- PRP_
+- ENV_
+- any studio-specific naming standard
+
+Pass condition:
+If enabled, the selected asset's clean short name must start with the configured prefix.
+
+Severity behavior:
+- off: naming validation is ignored
+- warning: naming mismatch is reported but does not block export
+- blocking: naming mismatch blocks export
+
+
+7. COLLISION RULES
+Purpose:
+Controls UCX collision validation, UCX match logic, custom collision target names, matched UCX mesh validation, and collision severity.
+
+Controls:
+- Check UCX Collision
+- Collision Requirement
+- Match Mode
+- Custom Target Name
+- Accept Multiple Parts
+- Validate Matched UCX Meshes
+- UCX Mesh Validation Severity
+- Severity
+
+7.1 Check UCX Collision
+Enables or disables UCX collision presence/name checking.
+
+7.2 Collision Requirement
+Available modes:
+- Off
+- UCX required
+- UCX optional
+- No custom collision allowed
+
+Off:
+Collision checking is disabled.
+
+UCX required:
+A matching UCX collision mesh must exist.
+
+UCX optional:
+The asset can pass with or without UCX collision. If matching UCX exists, it is reported.
+
+No custom collision allowed:
+If matching UCX collision exists, the asset fails this collision rule.
+
+7.3 Match Mode
+Available modes:
+- Base asset name
+- Exact custom target name
+
+Base asset name:
+The collision target name is the selected base asset name.
+
+Example base asset:
+SM_Table
+
+Expected UCX names:
+UCX_SM_Table
+UCX_SM_Table_01
+UCX_SM_Table_02
+
+Exact custom target name:
+The collision target name comes from the Custom Target Name field.
+
+Example Custom Target Name:
+Chair_A
+
+Expected UCX names:
+UCX_Chair_A
+UCX_Chair_A_01
+UCX_Chair_A_02
+
+This is useful when:
+- the Maya selection is a group
+- the render mesh has a different internal name
+- the intended Unreal collision target name is different from the selected object name
+- the artist needs strict manual control over UCX matching
+
+7.4 Custom Target Name
+Used only when Match Mode is Exact custom target name.
+
+If the field is empty while Exact custom target name is selected, the tool cannot reliably know which UCX target to use. The user should type the target name without the UCX_ prefix.
+
+Correct:
+wall_corner_01
+
+Expected UCX:
+UCX_wall_corner_01
+UCX_wall_corner_01_01
+
+Incorrect:
+UCX_wall_corner_01
+
+The field should contain the target name, not the full UCX prefix.
+
+7.5 Accept Multiple Parts
+When enabled, the tool accepts multipart UCX names:
+UCX_TargetName_01
+UCX_TargetName_02
+UCX_TargetName_03
+
+When disabled, the tool expects the exact single UCX name:
+UCX_TargetName
+
+7.6 Collision Severity
+Controls how UCX presence/name failures affect the base asset:
+- off
+- warning
+- blocking
+
+
+8. MATCHED UCX MESH VALIDATION
+Purpose:
+Checks the technical cleanliness of matched UCX collision meshes.
+
+Controls inside Collision Rules:
+- Validate Matched UCX Meshes
+- UCX Mesh Validation Severity
+
+This feature exists because UCX meshes are not base assets, but they are still meshes. They can still have technical problems such as unfrozen transforms, construction history, hidden parents, missing mesh shapes, locked transform attributes, excessive polycount, or near-zero thickness.
+
+Important behavior:
+- The user should select the main render mesh.
+- The tool finds matching UCX meshes.
+- The tool validates those UCX meshes as collision helpers.
+- UCX_* meshes are not treated as independent base assets.
+
+Matched UCX checks:
+
+8.1 Has Mesh Shape
+Checks whether the UCX transform has a valid non-intermediate mesh shape.
+
+Fail examples:
+- empty transform named UCX_Asset
+- group node without mesh shape
+- only intermediate shapes
+
+8.2 Freeze Transform
+Checks whether the UCX transform is frozen.
+
+Expected:
+- translate: 0, 0, 0
+- rotate: 0, 0, 0
+- scale: 1, 1, 1
+
+This helps ensure collision geometry exports predictably.
+
+8.3 History
+Checks whether the UCX mesh has construction history.
+
+Clean collision meshes are safer for export.
+
+8.4 Polycount
+Checks the UCX mesh face count against the same Max Polycount value used in Geometry Rules.
+
+Collision meshes should usually be simple and low-poly. This check helps detect overly complex UCX geometry.
+
+8.5 Zero Thickness
+Checks whether the UCX bounding box width, height, or depth is below or equal to the zero-thickness tolerance.
+
+This is important because collision meshes need usable volume.
+
+8.6 Visibility
+Checks whether the UCX transform and parent hierarchy are visible.
+
+Hidden or templated objects may cause confusion during export workflows.
+
+8.7 Locked Attributes
+Checks whether common transform attributes are locked.
+
+Locked attributes may interfere with cleanup, automated preparation, or export behavior.
+
+UCX Mesh Validation Severity:
+- off: matched UCX mesh validation does not affect the base asset
+- warning: UCX mesh validation failures are reported as warnings
+- blocking: UCX mesh validation failures become blocking issues
+
+Results display example:
+Matched UCX Mesh Checks:
+  UCX_wall_corner_01
+    Has Mesh Shape: Pass
+    Freeze Transform: Pass
+    History: Pass
+    Polycount: Pass
+    Zero Thickness: Pass
+    Visibility: Pass
+    Locked Attributes: Pass
+
+Failure example:
+Matched UCX Mesh Checks:
+  UCX_wall_corner_01
+    Freeze Transform: Fail - Transform values are not frozen
+    History: Fail - Construction history found
+
+
+9. EXPORT BEHAVIOR
+Purpose:
+Controls which validated assets are exported and how the FBX export behaves.
+
+Controls:
+- Export Ready Assets
+- Skip Blocked Assets
+- Export Warning Assets
+- Write JSON Report
+- Triangulate Export
+
+9.1 Export Ready Assets
+If enabled, assets with no blocking issues can be exported.
+
+9.2 Skip Blocked Assets
+If enabled, assets with blocking issues are skipped instead of being exported.
+
+9.3 Export Warning Assets
+If enabled, assets with warnings but no blocking issues can still export.
+
+If disabled, warning assets are skipped.
+
+9.4 Write JSON Report
+If enabled, the tool writes a JSON report to the selected export folder.
+
+9.5 Triangulate Export
+If enabled, the tool requests triangulated FBX export.
+
+This can be useful when a pipeline requires triangulated meshes before import.
+
+
+10. ACTIONS
+The tool includes three action buttons:
+- Validate Selected Assets
+- Export Selected Assets
+- Clear Results
+
+Validate Selected Assets:
+Runs validation on the current selected base mesh assets.
+
+Export Selected Assets:
+Runs validation, asks for an export folder, then exports assets based on Export Behavior settings.
+
+Clear Results:
+Clears the current result display and last validation result cache.
+
+Typical workflow:
+1. Select base mesh assets.
+2. Adjust rules.
+3. Validate.
+4. Review results.
+5. Fix scene issues if needed.
+6. Export.
+7. Import into Unreal Engine.
+8. Verify collision if UCX was used.
+
+
+11. RESULTS DISPLAY
+Purpose:
+Shows readable validation and export feedback.
+
+The results panel includes:
+- summary counts
+- asset name
+- asset status
+- per-check Pass/Fail states
+- short explanation for each check
+- UCX collision match details
+- matched UCX mesh validation details
+- export status
+- export path or failure reason
+
+Typical result categories:
+- Naming
+- Polycount
+- Freeze Transform
+- History
+- Zero Thickness
+- Dimensions
+- Pivot
+- Grid
+- UCX Collision
+- Matched UCX Mesh Checks
+- Export
+
+Asset status labels:
+Ready:
+No blocking issues and no warnings.
+
+Ready with warning:
+No blocking issues, but at least one warning exists.
+
+Blocked:
+One or more blocking issues exist.
+
+
+12. FBX EXPORT
+Purpose:
+Exports approved assets as FBX.
+
+Export behavior:
+- validates current selection
+- asks the user to choose an export folder
+- exports approved base assets as FBX
+- includes matching UCX collision meshes in the same FBX export selection
+- skips blocked assets if configured
+- handles warning assets according to settings
+- writes JSON report if enabled
+- creates unique FBX filenames to reduce overwrite risk
+
+UCX export example:
+Base asset:
+SM_Chair
+
+Matching collision meshes:
+UCX_SM_Chair_01
+UCX_SM_Chair_02
+
+FBX export selection:
+SM_Chair + UCX_SM_Chair_01 + UCX_SM_Chair_02
+
+Generated file:
+SM_Chair.fbx
+
+Important:
+The UCX meshes are inside SM_Chair.fbx. They are not exported as separate FBX files.
+
+
+13. UCX EXPORT AND UNREAL ENGINE BEHAVIOR
+Purpose:
+Clarifies the expected Unreal Engine UCX workflow.
+
+When UCX collision is exported correctly, the folder normally contains one FBX file per base asset.
+
+Example folder output:
+wall_corner_01.fbx
+
+The FBX file contains:
+wall_corner_01
+UCX_wall_corner_01
+
+The folder does not normally contain:
+UCX_wall_corner_01.fbx
+
+Unreal Engine behavior:
+- UCX meshes are imported as custom/simple collision.
+- They may not appear as separate visible mesh assets in the Content Browser.
+- The correct place to verify them is the Static Mesh Editor collision display.
+
+How to verify:
+1. Import wall_corner_01.fbx into Unreal Engine.
+2. Open the imported Static Mesh asset.
+3. Enable collision display, such as Show > Simple Collision.
+4. Confirm that the UCX collision appears.
+
+Common misunderstanding:
+If the export folder does not contain UCX_wall_corner_01.fbx, that does not mean UCX export failed. The UCX mesh is expected to be inside wall_corner_01.fbx.
+
+
+14. FBX EXPORT SETTINGS
+The tool applies FBX export settings intended for static mesh workflows.
+
+The fixed version explicitly disables unnecessary export elements such as:
+- cameras
+- lights
+- constraints
+- skins
+- blend shapes / shapes
+- embedded textures
+
+The tool also keeps export focused on selected objects and supports optional triangulation from the UI.
+
+Unsupported FBX MEL commands are handled safely so they do not stop the script unnecessarily.
+
+
+15. JSON REPORT
+Purpose:
+Writes validation and export data into a JSON file for review, debugging, or pipeline tracking.
+
+The report can include:
+- profile name
+- build/version context
+- front axis
+- total asset count
+- ready asset count
+- warning asset count
+- blocked asset count
+- exported asset count
+- skipped asset count
+- failed export count
+- per-asset validation results
+- warning messages
+- blocking issue messages
+- UCX collision target name
+- UCX collision match list
+- matched UCX mesh validation results
+- export status and export path
+
+The report is written using UTF-8 encoding to support special characters in asset names.
+
+
+16. SHELF INTEGRATION
+Purpose:
+Allows the tool to be launched from a Maya shelf button.
+
+Correct shelf name:
+M2U_Tools
+
+The older typo shelf name was:
+MZU_Tools
+
+The fixed version uses M2U_Tools.
+
+Recommended installer:
+INSTALL_M2U_STUDIO_CUSTOM.txt
+
+Recommended release behavior:
+- create or update M2U_Tools shelf
+- use m2u_studio_custom_icon.png as the shelf icon when available
+- fall back to Maya's default command icon if icon is missing
+- create a v12-specific shelf button
+- avoid stale Maya module cache when using the patched all-in-one installer
+
+Expected working shelf button label for the patched installer:
+M2U Studio Custom v12 FINAL PATCHED
+
+Expected window title:
+M2U Studio Custom - Fixed v12 UCX UI FINAL
+
+
+17. IMPORT-SAFE MODULE BEHAVIOR
+The fixed script is import-safe.
+
+This means importing the module does not automatically open the UI.
+
+Manual launch:
+import m2u_studio_custom_fixed
+m2u_studio_custom_fixed.show()
+
+This is safer for:
+- Maya Script Editor use
+- shelf button launchers
+- other Python scripts
+- future pipeline integration
+- testing and reload workflows
+
+
+18. DUPLICATE EXPORT FILENAME HANDLING
+Purpose:
+Reduces the risk of overwriting exported FBX files when multiple assets share the same short name.
+
+Behavior:
+If an export filename already exists or would conflict, the tool creates a unique name by adding a numeric suffix.
+
+Example:
+SM_Table.fbx
+SM_Table_001.fbx
+SM_Table_002.fbx
+
+
+19. UCX BASE ASSET EXCLUSION
+Purpose:
+Prevents UCX collision meshes from being treated as standalone base export assets.
+
+Behavior:
+If the user selects only UCX_* objects, they are not treated as primary assets for validation/export.
+
+Correct workflow:
+Select the main render mesh. The tool will automatically find and validate matching UCX meshes.
+
+Reason:
+In Unreal Engine workflows, UCX meshes are collision helpers for a static mesh. They are not normally separate exported static mesh assets.
+
+
+20. CUSTOM COLLISION TARGET NAME WORKFLOW
+Purpose:
+Allows users to validate/export UCX collision using a manually typed target name.
+
+Workflow:
+1. Select the main/base mesh or intended base asset.
+2. Open Collision Rules.
+3. Set Match Mode to Exact custom target name.
+4. Type the target name into Custom Target Name.
+5. Do not include UCX_ in the field.
+6. Enable Accept Multiple Parts if multipart collision is used.
+7. Validate.
+8. Export.
+
+Example:
+Custom Target Name:
+wall_corner_01
+
+Accepted UCX names:
+UCX_wall_corner_01
+UCX_wall_corner_01_01
+UCX_wall_corner_01_02
+
+This is useful when naming in the Maya hierarchy is different from the desired Unreal target name.
+
+
+21. INTENDED USE CASES
+The tool is useful for:
+- Unreal Engine-oriented FBX export workflows
+- static mesh preparation
+- modular environment asset checking
+- prop asset validation
+- collision mesh validation
+- UCX custom collision workflows
+- artist-side pre-export checks
+- technical artist pipeline helper workflows
+- studio-specific validation rules
+- checking assets before batch handoff
+
+
+22. INTENDED USERS
+The tool is intended for:
+- 3D artists
+- environment artists
+- prop artists
+- technical artists
+- Maya users preparing structured asset exports
+- users preparing static mesh assets for Unreal Engine-oriented workflows
+- small teams that need lightweight pre-export validation
+
+
+23. LIMITATIONS
+The tool does not:
+- import assets into Unreal Engine automatically
+- replace Unreal Engine import settings
+- guarantee that Unreal import settings are configured correctly
+- create separate FBX files for UCX collision meshes
+- treat UCX_* meshes as standalone base assets
+- replace full studio asset management systems
+- replace manual visual inspection in Unreal Engine
+
+
+25. SUMMARY OF MAJOR FIXED FEATURES
+The fixed v12 version includes:
+- working UCX export selection behavior
+- clarified UCX export behavior inside the same FBX file
+- working Collision Match Mode
+- working Exact custom target name support
+- visible Matched UCX Mesh Validation UI controls inside Collision Rules
+- Validate Matched UCX Meshes option
+- UCX Mesh Validation Severity option
+- matched UCX mesh quality checks
+- grid bounds snap validation
+- zero thickness validation
+- import-safe launch behavior
+- correct M2U_Tools shelf naming
+- safer patched all-in-one installer workflow
+- expanded FBX export settings
+- duplicate export filename protection
+- JSON report improvements
+
