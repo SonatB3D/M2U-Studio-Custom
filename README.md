@@ -7,9 +7,6 @@ It is designed for Autodesk Maya users who prepare static mesh assets for Unreal
 
 The tool provides an artist-friendly shelf workflow, readable validation results, FBX export controls, UCX custom collision support, matched UCX mesh validation, custom collision target naming, and optional JSON reporting.
 
-This README is written for the fixed v12 release based on:
-- m2u_studio_custom_fixed.py
-- M2U_BUILD_ID: v12_ucx_ui_final
 
 MAIN WORKFLOW
 1. Select one or more base mesh assets in Maya.
